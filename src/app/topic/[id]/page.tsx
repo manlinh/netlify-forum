@@ -1,17 +1,25 @@
 import { db } from "@/db/client";
 import { posts, topics } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import NewPostForm from "@/components/NewPostForm";
 
 export default async function TopicPage(
-  { params }: { params: Promise<{ id: string }> }   // <- params is a Promise
+  { params }: { params: Promise<{ id: string }> }  // Next 15: params is a Promise
 ) {
-  const { id } = await params;                       // <- await it
+  const { id } = await params;
   const topicId = Number(id);
 
-  const [topic] = await db.select().from(topics).where((t, { eq }) => eq(t.id, topicId));
+  const [topic] = await db
+    .select()
+    .from(topics)
+    .where(eq(topics.id, topicId));
+
   if (!topic) return <div style={{ padding: 24 }}>Topic not found.</div>;
 
-  const ps = await db.select().from(posts).where((p, { eq }) => eq(p.topicId, topicId));
+  const ps = await db
+    .select()
+    .from(posts)
+    .where(eq(posts.topicId, topicId));
 
   return (
     <main style={{ padding: 24 }}>
