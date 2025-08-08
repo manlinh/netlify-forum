@@ -1,10 +1,10 @@
 import { db } from "@/db/client";
 import { profiles } from "@/db/schema";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { db } from "@/db/client";
 
 export default async function ProfilePage() {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
+
   if (!session?.user?.id) return <div style={{ padding: 24 }}>Please sign in.</div>;
   const userId = session.user.id;
   const [p] = await db.select().from(profiles).where((pr, { eq }) => eq(pr.userId, userId));
