@@ -1,13 +1,21 @@
 import { db } from "@/db/client";
 import { profiles } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { auth } from "@/auth";
 
 export default async function ProfilePage() {
   const session = await auth();
-  if (!session?.user?.id) return <div style={{ padding: 24 }}>Please sign in.</div>;
+  if (!session?.user?.id) {
+    return <div style={{ padding: 24 }}>Please sign in.</div>;
+  }
 
   const userId = session.user.id;
-  const [p] = await db.select().from(profiles).where((pr, { eq }) => eq(pr.userId, userId));
+
+  // Drizzle v2: use helper form instead of callback
+  const [p] = await db
+    .select()
+    .from(profiles)
+    .where(eq(profiles.userId, userId));
 
   return (
     <main style={{ padding: 24 }}>
