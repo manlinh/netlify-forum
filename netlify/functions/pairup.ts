@@ -1,5 +1,6 @@
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
+import { eq } from "drizzle-orm";
 import * as schema from "../../src/db/schema";
 
 // Scheduled Netlify Function: runs daily at 02:00 UTC (10:00 Taipei)
@@ -9,11 +10,13 @@ export default async function handler() {
   const sql = neon(process.env.DATABASE_URL!);
   const db = drizzle(sql, { schema });
 
+  // Get all users who opted in to pairing
   const users = await db
     .select()
     .from(schema.profiles)
-    .where((p, { eq }) => eq(p.optInPair, true));
+    .where(eq(schema.profiles.optInPair, true));
 
+  // Naive pair-up: user0 with user1, user2 with user3, ...
   const pairs: { userA: string; userB: string }[] = [];
   for (let i = 0; i + 1 < users.length; i += 2) {
     pairs.push({ userA: users[i].userId, userB: users[i + 1].userId });
