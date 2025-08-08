@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { db } from "@/db/client";
 import { topics } from "@/db/schema";
-import { z } from "zod";
 import { auth } from "@/auth";
-
 
 const TopicCreate = z.object({ forumId: z.number(), title: z.string().min(1) });
 
@@ -16,18 +15,17 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  import { NextRequest, NextResponse } from "next/server";
+  const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  let body: any = {};
-  try { body = await req.json(); } catch {}
+  const body = await req.json().catch(() => ({}));
   const parsed = TopicCreate.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
 
-  const inserted = await db.insert(topics).values({
-    forumId: parsed.data.forumId,
-    title: parsed.data.title,
-    authorId: session.user.id,
-  }).returning();
-  return NextResponse.json(inserted[0]);
+  const [inserted] = await db
+    .insert(topics)
+    .values({ forumId: parsed.data.forumId, title: parsed.data.title, authorId: session.user.id })
+    .returning();
+
+  return NextResponse.json(inserted);
 }
