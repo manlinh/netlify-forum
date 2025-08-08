@@ -1,10 +1,10 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { auth } from "@/auth";
+
 import { db } from "@/db/client";
 import { forums, topics, posts } from "@/db/schema";
 
 export default async function AdminPage() {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   if (!session?.user?.id) return <div style={{ padding: 24 }}>Admins only.</div>;
 
   const [fs, ts, ps] = await Promise.all([
